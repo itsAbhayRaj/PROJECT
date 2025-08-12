@@ -12,7 +12,7 @@ dotenv.config({
 connectDB()
   .then(() => {
     const server = app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server is live on localhost:${process.env.PORT}`);
+      console.log(`Server is live on http://localhost:${process.env.PORT}`);
     });
     server.on("error", (error) => {
       console.log("Error: ", error);
@@ -23,9 +23,6 @@ connectDB()
     console.log("MONOGO DB Connection Failed: ", err);
   });
 
-  app.get("/", (req, res) => {
-    res.send("Hello");
-  })
 // console.log("Hello");
 
 /*
