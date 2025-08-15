@@ -280,11 +280,11 @@ const updateAvatar = asyncHandler(async (req, res) => {
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-
+  
   if (!avatar.url) {
     throw new ApiError(400, "Error while uploading avatar image on cloudinary");
   }
-
+  
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
@@ -294,6 +294,10 @@ const updateAvatar = asyncHandler(async (req, res) => {
     },
     { new: true }
   ).select("-password");
+  
+  if (req.user?.avatar) {
+    await deleteOnCloudinary(req.user.avatar);
+  }
 
   return res
   .status(200)
@@ -324,6 +328,10 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     },
     { new: true }
   ).select("-password");
+
+  if (req.user?.coverImage) {
+    await deleteOnCloudinary(req.user.coverImage);
+  }
 
   return res
   .status(200)
