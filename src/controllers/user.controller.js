@@ -2,7 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import {uploadOnCloudinary , deleteOnCloudinary} from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
@@ -181,7 +181,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
   // console.log(req.cookies.refreshToken);
-  
+
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
@@ -191,14 +191,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     process.env.REFRESH_TOKEN_SECRET
   );
 
-  const user = await User.findById(decodedToken?._id).select(
-    "-password"
-  );
+  const user = await User.findById(decodedToken?._id).select("-password");
 
   if (!user) {
     throw new ApiError(401, "Invalid Refresh Token");
   }
-  
+
   if (user.refreshToken !== incomingRefreshToken) {
     throw new ApiError(401, "Refresh Token expired or used");
   }
@@ -248,11 +246,12 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(new ApiResponse(200, req.user, "Current User Fetched"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Current User Fetched"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  
   const { fullName, email } = req.body;
 
   if (!fullName || !email) {
@@ -343,7 +342,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
-  if (!username?.trim()) {
+  if (!username || !username?.trim()) {
     throw new ApiError(400, "Username is missing");
   }
 
@@ -407,6 +406,8 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
       $match: {
         _id: new mongoose.Types.ObjectId(req.user._id),
       },
+    },
+    {
       $lookup: {
         from: "videos",
         localField: "watchHistory",
@@ -453,8 +454,6 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
-
- 
 export {
   registerUser,
   loginUser,
