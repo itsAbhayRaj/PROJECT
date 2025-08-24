@@ -2,9 +2,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import uploadOnCloudinary from "../utils/cloudinary.js";
+import {uploadOnCloudinary , deleteOnCloudinary} from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
-import { subscribe } from "diagnostics_channel";
 import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -158,8 +157,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: null,
+      $unset: {
+        refreshToken: 1, // this remove , better than set NULL
       },
     },
     {
@@ -180,8 +179,9 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
-    req.cookies.refreshToken || req.body.refreshToken;
-
+    req.cookies?.refreshToken || req.body?.refreshToken;
+  // console.log(req.cookies.refreshToken);
+  
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
@@ -192,13 +192,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   );
 
   const user = await User.findById(decodedToken?._id).select(
-    "-password -refreshToken"
+    "-password"
   );
 
   if (!user) {
     throw new ApiError(401, "Invalid Refresh Token");
   }
-
+  
   if (user.refreshToken !== incomingRefreshToken) {
     throw new ApiError(401, "Refresh Token expired or used");
   }
@@ -248,17 +248,18 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(200, req.user, "Current User Fetched");
+  return res.status(200).json(new ApiResponse(200, req.user, "Current User Fetched"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
+  
   const { fullName, email } = req.body;
 
   if (!fullName || !email) {
     throw new ApiError(400, "All fields are required");
   }
 
-  const user = User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
@@ -298,7 +299,8 @@ const updateAvatar = asyncHandler(async (req, res) => {
   ).select("-password");
 
   if (req.user?.avatar) {
-    await deleteOnCloudinary(req.user.avatar);
+    const response = await deleteOnCloudinary(req.user.avatar);
+    // console.log(response);
   }
 
   return res
@@ -451,6 +453,8 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+
+ 
 export {
   registerUser,
   loginUser,
