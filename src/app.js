@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import multer from 'multer';
 
 const app = express();
 
@@ -35,4 +36,43 @@ app.use('/api/v1/playlist', playlistRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/subscriptions', subscriptionRouter);
 app.use('/api/v1/tweets', tweetRouter);
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+    console.error('Error:', error);
+    
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                message: 'File too large. Maximum size is 100MB'
+            });
+        }
+        if (error.code === 'LIMIT_FILE_COUNT') {
+            return res.status(400).json({
+                success: false,
+                message: 'Too many files uploaded'
+            });
+        }
+        if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({
+                success: false,
+                message: 'Unexpected file field'
+            });
+        }
+    }
+    
+    if (error.message) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+    
+    return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+    });
+});
+
 export default app;
