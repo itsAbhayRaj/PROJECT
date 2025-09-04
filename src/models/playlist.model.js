@@ -5,14 +5,16 @@ const playlistSchema = new Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
-      required: true,
+      trim: true,
     },
     owner: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     videos: [
       {
@@ -20,6 +22,10 @@ const playlistSchema = new Schema(
         ref: "Video",
       },
     ],
+    isPublic: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );
