@@ -4,7 +4,7 @@ import {
     getChannelStats,
     getChannelVideos,
     getChannelAnalytics
-} from "../controller/dashboard.controller.js";
+} from "../controllers/dashboard.controller.js";
 
 const router = Router();
 
